@@ -2,19 +2,19 @@ import stripe from 'stripe'
 import Booking from '../models/Booking.js'
 
 export const stripeWebhooks = async (req, res) => {
-    const stripeInstance = new stripe(process.env.STRIPE_WEBHOOK_SECTET);
+    const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
     const sig = req.headers["stripe-signature"];
 
     let event;
     try {
-        event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECTET)
+        event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET)
     } catch (error) {
         return res.status(400).send(`Webhook Error: ${error.message}`);
     }
 
     try {
         switch (event.type) {
-            case "payment_intent.succeeded": {
+            case "checkout.session.completed": {
                 const payment_intent = event.data.object;
                 const sessionList = await stripeInstance.checkout.sessions.list({
                     payment_intent: payment_intent.id
